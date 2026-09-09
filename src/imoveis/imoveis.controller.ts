@@ -15,19 +15,19 @@ import { AtualizarImovelDto } from './dtos/atualizar-imovel.dto';
 export class ImoveisController {
   constructor(private readonly imoveisService: ImoveisService) {}
 
-  @Post()
-  criar(@Body() imovel: CriarImovelDto) {
-    return this.imoveisService.criar(imovel);
-  }
-
   @Get()
   listarTodos() {
     return this.imoveisService.listarTodos();
   }
 
   @Get(':id')
-  encontrarUm(@Param('id') id: string) {
-    return this.imoveisService.encontrarUm(id);
+  buscarPorId(@Param('id') id: string) {
+    return this.imoveisService.buscarPorId(id);
+  }
+
+  @Post()
+  criar(@Body() imovelNovo: CriarImovelDto) {
+    return this.imoveisService.criar(imovelNovo);
   }
 
   @Patch(':id')

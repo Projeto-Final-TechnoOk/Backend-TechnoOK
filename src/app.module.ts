@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ImoveisModule } from './imoveis/imoveis.module';
+import { MedidoresModule } from './medidor/medidores.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { ImoveisModule } from './imoveis/imoveis.module';
       }),
     }),
     ImoveisModule,
+    MedidoresModule,
   ],
   controllers: [],
   providers: [],

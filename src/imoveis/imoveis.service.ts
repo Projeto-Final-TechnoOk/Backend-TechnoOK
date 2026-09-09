@@ -20,7 +20,7 @@ export class ImoveisService {
     return this.imoveisRepository.find();
   }
 
-  async encontrarUm(id: string): Promise<Imovel> {
+  async buscarPorId(id: string): Promise<Imovel> {
     const imovel = await this.imoveisRepository.findOne({
       where: { id },
     });
@@ -32,13 +32,13 @@ export class ImoveisService {
     return imovel;
   }
 
-  async criar(imovel: CriarImovelDto) {
-    const nome = imovel.nome.trim();
-    const endereco = imovel.endereco.trim();
+  async criar(imovelNovo: CriarImovelDto): Promise<Imovel> {
+    const nome = imovelNovo.nome.trim();
+    const endereco = imovelNovo.endereco.trim();
 
     if (!nome || !endereco) {
       throw new BadRequestException(
-        "Os campos de 'Nome' e 'Endereço' não devem conter somente espaços",
+        "Os campos de 'Nome' e 'Endereço' devem conter algum valor",
       );
     }
 
@@ -54,7 +54,7 @@ export class ImoveisService {
     id: string,
     imovelAtualizado: AtualizarImovelDto,
   ): Promise<Imovel> {
-    const imovel = await this.encontrarUm(id);
+    const imovel = await this.buscarPorId(id);
 
     if (imovelAtualizado.nome !== undefined) {
       const nome = imovelAtualizado.nome.trim();
@@ -78,7 +78,7 @@ export class ImoveisService {
   }
 
   async excluir(id: string): Promise<{ mensagem: string }> {
-    const imovel = await this.encontrarUm(id);
+    const imovel = await this.buscarPorId(id);
 
     await this.imoveisRepository.remove(imovel);
 

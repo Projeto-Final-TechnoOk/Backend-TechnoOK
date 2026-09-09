@@ -8,5 +8,6 @@ import { Imovel } from './imovel.entity';
   imports: [TypeOrmModule.forFeature([Imovel])],
   controllers: [ImoveisController],
   providers: [ImoveisService],
+  exports: [ImoveisService],
 })
 export class ImoveisModule {}
