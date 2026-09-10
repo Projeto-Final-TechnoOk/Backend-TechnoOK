@@ -25,6 +25,11 @@ export class ImoveisController {
     return this.imoveisService.buscarPorId(id);
   }
 
+  @Get(':id/medidores')
+  buscarComMedidores(@Param('id') id: string) {
+    return this.imoveisService.buscarComMedidores(id);
+  }
+
   @Post()
   criar(@Body() imovelNovo: CriarImovelDto) {
     return this.imoveisService.criar(imovelNovo);
@@ -39,7 +44,7 @@ export class ImoveisController {
   }
 
   @Delete(':id')
-  excluir(@Param('id') id: string) {
-    return this.imoveisService.excluir(id);
+  deletar(@Param('id') id: string) {
+    return this.imoveisService.deletar(id);
   }
 }

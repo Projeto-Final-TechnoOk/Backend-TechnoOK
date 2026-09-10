@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -23,6 +24,21 @@ export class ImoveisService {
   async buscarPorId(id: string): Promise<Imovel> {
     const imovel = await this.imoveisRepository.findOne({
       where: { id },
+    });
+
+    if (!imovel) {
+      throw new NotFoundException('Imóvel não encontrado');
+    }
+
+    return imovel;
+  }
+
+  async buscarComMedidores(id: string): Promise<Imovel> {
+    const imovel = await this.imoveisRepository.findOne({
+      where: { id },
+      relations: {
+        medidores: true,
+      },
     });
 
     if (!imovel) {
@@ -77,8 +93,14 @@ export class ImoveisService {
     return this.imoveisRepository.save(imovel);
   }
 
-  async excluir(id: string): Promise<{ mensagem: string }> {
-    const imovel = await this.buscarPorId(id);
+  async deletar(id: string): Promise<{ mensagem: string }> {
+    const imovel = await this.buscarComMedidores(id);
+
+    if (imovel.medidores.length > 0) {
+      throw new ConflictException(
+        'Não é possível excluir um imóvel que possui medidores associados.',
+      );
+    }
 
     await this.imoveisRepository.remove(imovel);
 
