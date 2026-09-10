@@ -1,5 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
-import { Medidor } from '../medidor/medidor.entity';
+import { Medidor } from '../medidores/medidor.entity';
 @Entity('imoveis')
 export class Imovel {
   @PrimaryGeneratedColumn('uuid')
