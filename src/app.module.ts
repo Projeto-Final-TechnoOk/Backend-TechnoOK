@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ImoveisModule } from './imoveis/imoveis.module';
-import { MedidoresModule } from './medidor/medidores.module';
+import { MedidoresModule } from './medidores/medidores.module';
 import { LeiturasModule } from './leituras/leituras.module';
 
 @Module({

@@ -5,7 +5,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Medidor } from '../medidor/medidor.entity';
+import { Medidor } from '../medidores/medidor.entity';
 
 @Entity('leituras')
 export class Leitura {
@@ -22,7 +22,10 @@ export class Leitura {
   })
   valor!: number;
 
-  @ManyToOne(() => Medidor, (medidor) => medidor.leituras, { nullable: false })
+  @ManyToOne(() => Medidor, (medidor) => medidor.leituras, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'medidor_id' })
   medidor!: Medidor;
 }
