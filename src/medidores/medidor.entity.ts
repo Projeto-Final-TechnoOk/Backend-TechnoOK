@@ -15,7 +15,7 @@ export class Medidor {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column()
+  @Column({ unique: true })
   identificador!: string;
 
   @Column({ type: 'enum', enum: TipoMedidor })
