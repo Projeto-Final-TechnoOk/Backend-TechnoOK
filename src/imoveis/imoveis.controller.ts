@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
 } from '@nestjs/common';
@@ -21,12 +22,12 @@ export class ImoveisController {
   }
 
   @Get(':id')
-  buscarPorId(@Param('id') id: string) {
+  buscarPorId(@Param('id', ParseUUIDPipe) id: string) {
     return this.imoveisService.buscarPorId(id);
   }
 
   @Get(':id/medidores')
-  buscarComMedidores(@Param('id') id: string) {
+  buscarComMedidores(@Param('id', ParseUUIDPipe) id: string) {
     return this.imoveisService.buscarComMedidores(id);
   }
 
@@ -37,14 +38,14 @@ export class ImoveisController {
 
   @Patch(':id')
   atualizar(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() imovelAtualizado: AtualizarImovelDto,
   ) {
     return this.imoveisService.atualizar(id, imovelAtualizado);
   }
 
   @Delete(':id')
-  deletar(@Param('id') id: string) {
+  deletar(@Param('id', ParseUUIDPipe) id: string) {
     return this.imoveisService.deletar(id);
   }
 }

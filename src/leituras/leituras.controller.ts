@@ -1,4 +1,11 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Post,
+} from '@nestjs/common';
 import { LeiturasService } from './leituras.service';
 import { CriarLeituraDto } from './dtos/criar-leitura.dto';
 
@@ -12,7 +19,7 @@ export class LeiturasController {
   }
 
   @Get(':id')
-  buscarPorId(@Param('id') id: string) {
+  buscarPorId(@Param('id', ParseUUIDPipe) id: string) {
     return this.leiturasService.buscarPorId(id);
   }
 

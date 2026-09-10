@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
 } from '@nestjs/common';
@@ -21,12 +22,12 @@ export class MedidoresController {
   }
 
   @Get(':id')
-  buscarPorId(@Param('id') id: string) {
+  buscarPorId(@Param('id', ParseUUIDPipe) id: string) {
     return this.medidoresService.buscarPorId(id);
   }
 
   @Get(':id/detalhes')
-  buscarComImovelELeituras(@Param('id') id: string) {
+  buscarComImovelELeituras(@Param('id', ParseUUIDPipe) id: string) {
     return this.medidoresService.buscarComImovelELeituras(id);
   }
 
@@ -37,14 +38,14 @@ export class MedidoresController {
 
   @Patch(':id')
   atualizar(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() medidorAtualizado: AtualizarMedidorDto,
   ) {
     return this.medidoresService.atualizar(id, medidorAtualizado);
   }
 
   @Delete(':id')
-  deletar(@Param('id') id: string) {
+  deletar(@Param('id', ParseUUIDPipe) id: string) {
     return this.medidoresService.deletar(id);
   }
 }
