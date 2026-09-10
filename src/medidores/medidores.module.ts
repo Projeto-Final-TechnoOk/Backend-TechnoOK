@@ -8,7 +8,7 @@ import { ImoveisModule } from '../imoveis/imoveis.module';
 @Module({
   controllers: [MedidoresController],
   providers: [MedidoresService],
-  imports: [TypeOrmModule.forFeature([Medidor]), ImoveisModule],
-  exports: [MedidoresService],
+  imports: [TypeOrmModule.forFeature([Medidor]), ImoveisModule], // Importa Repository de Medidor e o módulo de imóveis
+  exports: [MedidoresService], // Exporta o service de medidores
 })
 export class MedidoresModule {}

@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ImoveisModule } from './imoveis/imoveis.module';
 import { MedidoresModule } from './medidores/medidores.module';
 import { LeiturasModule } from './leituras/leituras.module';
+import { ConsumoModule } from './consumo/consumo.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { LeiturasModule } from './leituras/leituras.module';
     ImoveisModule,
     MedidoresModule,
     LeiturasModule,
+    ConsumoModule,
   ],
   controllers: [],
   providers: [],

@@ -20,6 +20,7 @@ export class MedidoresService {
     private readonly imoveisService: ImoveisService,
   ) {}
 
+  // Lista todos os medidores (cada medidor carrega também o id e o nome do imóvel).
   async listarTodos(): Promise<MedidorListagem[]> {
     const medidores = await this.medidoresRepository.find({
       relations: {
@@ -32,6 +33,7 @@ export class MedidoresService {
     );
   }
 
+  // Busca somente um medidor (carrega também todas as informações do imóvel).
   async buscarPorId(id: string): Promise<Medidor> {
     const medidor = await this.medidoresRepository.findOne({
       where: { id },
@@ -41,12 +43,14 @@ export class MedidoresService {
     });
 
     if (!medidor) {
+      // Validação
       throw new NotFoundException('Medidor não encontrado');
     }
 
     return medidor;
   }
 
+  // Busca somente um medidor (carrega também todas as informações do imóvel e todas as leituras associadas a ele).
   async buscarComImovelELeituras(id: string): Promise<Medidor> {
     const medidor = await this.medidoresRepository.findOne({
       where: { id },
@@ -63,6 +67,7 @@ export class MedidoresService {
     return medidor;
   }
 
+  // Cria um novo registro de medidor.
   async criar(medidorNovo: CriarMedidorDto): Promise<Medidor> {
     const identificador = medidorNovo.identificador.trim();
     const imovelId = medidorNovo.imovelId.trim();
@@ -84,6 +89,7 @@ export class MedidoresService {
     return this.medidoresRepository.save(novoMedidor);
   }
 
+  // Atualiza um registro de medidor.
   async atualizar(
     id: string,
     medidorAtualizado: AtualizarMedidorDto,
@@ -116,6 +122,7 @@ export class MedidoresService {
     return this.medidoresRepository.save(medidor);
   }
 
+  // Deleta um regitro de medidor e todas as leituras associadas a ele.
   async deletar(id: string): Promise<{ mensagem: string }> {
     const medidor = await this.buscarPorId(id);
 
