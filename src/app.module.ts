@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ImoveisModule } from './imoveis/imoveis.module';
 import { MedidoresModule } from './medidor/medidores.module';
+import { LeiturasModule } from './leituras/leituras.module';
 
 @Module({
   imports: [
@@ -19,10 +20,14 @@ import { MedidoresModule } from './medidor/medidores.module';
         database: configService.get<string>('DB_NAME'),
         autoLoadEntities: true,
         synchronize: false,
+
+        retryAttempts: 10,
+        retryDelay: 3000,
       }),
     }),
     ImoveisModule,
     MedidoresModule,
+    LeiturasModule,
   ],
   controllers: [],
   providers: [],
