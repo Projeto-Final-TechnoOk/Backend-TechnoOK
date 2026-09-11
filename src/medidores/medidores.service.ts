@@ -43,7 +43,6 @@ export class MedidoresService {
     });
 
     if (!medidor) {
-      // Validação
       throw new NotFoundException('Medidor não encontrado');
     }
 
