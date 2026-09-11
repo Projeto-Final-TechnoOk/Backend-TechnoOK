@@ -1,7 +1,12 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Leitura } from '../leituras/leitura.entity';
+import { Medidor } from '../medidores/medidor.entity';
 
 type Nivel = 'ano' | 'mes' | 'dia';
 
@@ -9,11 +14,23 @@ type Nivel = 'ano' | 'mes' | 'dia';
 export class ConsumoService {
   constructor(
     @InjectRepository(Leitura)
-    private leituraRepository: Repository<Leitura>,
+    private readonly leituraRepository: Repository<Leitura>,
+    @InjectRepository(Medidor)
+    private readonly medidorRepository: Repository<Medidor>,
   ) {}
 
   async calcular(medidorId: string, nivel: Nivel, ano?: number, mes?: number) {
-    if (ano !== undefined && (!Number.isInteger(ano) || ano < 0)) {
+    if (!(await this.medidorRepository.exists({ where: { id: medidorId } }))) {
+      throw new NotFoundException('Medidor não encontrado.');
+    }
+
+    if (nivel !== 'ano' && nivel !== 'mes' && nivel !== 'dia') {
+      throw new BadRequestException(
+        "O nível informado deve ser 'ano', 'mes' ou 'dia'.",
+      );
+    }
+
+    if (ano !== undefined && (!Number.isInteger(ano) || ano <= 0)) {
       throw new BadRequestException(
         'O ano informado deve ser um número inteiro e positivo.',
       );
