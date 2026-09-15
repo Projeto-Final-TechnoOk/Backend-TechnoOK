@@ -106,4 +106,8 @@ export class ImoveisService {
 
     return { mensagem: `O imóvel '${imovel.nome}' foi excluído com sucesso` };
   }
+
+  async contar(): Promise<number> {
+    return this.imoveisRepository.count();
+  }
 }

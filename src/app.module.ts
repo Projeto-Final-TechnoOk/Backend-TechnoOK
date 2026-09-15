@@ -5,6 +5,7 @@ import { ImoveisModule } from './imoveis/imoveis.module';
 import { MedidoresModule } from './medidores/medidores.module';
 import { LeiturasModule } from './leituras/leituras.module';
 import { ConsumoModule } from './consumo/consumo.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { ConsumoModule } from './consumo/consumo.module';
     MedidoresModule,
     LeiturasModule,
     ConsumoModule,
+    DashboardModule,
   ],
   controllers: [],
   providers: [],

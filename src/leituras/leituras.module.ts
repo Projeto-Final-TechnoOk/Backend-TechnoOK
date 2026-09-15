@@ -9,5 +9,6 @@ import { MedidoresModule } from '../medidores/medidores.module';
   controllers: [LeiturasController],
   providers: [LeiturasService],
   imports: [TypeOrmModule.forFeature([Leitura]), MedidoresModule],
+  exports: [LeiturasService],
 })
 export class LeiturasModule {}

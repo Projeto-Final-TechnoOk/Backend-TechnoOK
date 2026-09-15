@@ -131,4 +131,8 @@ export class MedidoresService {
       mensagem: `O medidor de identificador '${medidor.identificador}' e suas leituras foram excluídos com sucesso`,
     };
   }
+
+  async contar(): Promise<number> {
+    return this.medidoresRepository.count();
+  }
 }
