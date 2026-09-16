@@ -46,17 +46,16 @@ export class LeiturasService {
   }
 
   async criar(leituraNova: CriarLeituraDto): Promise<Leitura> {
-    const dataHora = leituraNova.dataHora.trim();
     const medidorId = leituraNova.medidorId.trim();
 
-    if (!dataHora || !medidorId) {
+    if (!medidorId) {
       throw new BadRequestException(
-        "Os campos de 'Data' e de 'Id do Medidor' devem conter algum valor",
+        "O campo de 'Id do Medidor' deve conter algum valor",
       );
     }
     const medidor = await this.medidoresService.buscarPorId(medidorId);
     const novaLeitura = this.leiturasRepository.create({
-      dataHora: new Date(dataHora),
+      dataHora: new Date(),
       valor: leituraNova.valor,
       medidor,
     });
