@@ -63,23 +63,7 @@ export class LeiturasService {
     return this.leiturasRepository.save(novaLeitura);
   }
 
-  async contarDoMesAtual(): Promise<number> {
-    const inicioDoMes = new Date();
-    inicioDoMes.setDate(1);
-    inicioDoMes.setHours(0, 0, 0, 0);
-
-    const inicioDoProximoMes = new Date(
-      inicioDoMes.getFullYear(),
-      inicioDoMes.getMonth() + 1,
-      1,
-    );
-
-    return this.leiturasRepository
-      .createQueryBuilder('leitura')
-      .where('leitura.dataHora >= :inicioDoMes', { inicioDoMes })
-      .andWhere('leitura.dataHora < :inicioDoProximoMes', {
-        inicioDoProximoMes,
-      })
-      .getCount();
+  async contar(): Promise<number> {
+    return this.leiturasRepository.count();
   }
 }

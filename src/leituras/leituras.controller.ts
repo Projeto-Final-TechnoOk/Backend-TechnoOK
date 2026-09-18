@@ -18,6 +18,11 @@ export class LeiturasController {
     return this.leiturasService.listarTodos();
   }
 
+  @Get('contar')
+  contar() {
+    return this.leiturasService.contar();
+  }
+
   @Get(':id')
   buscarPorId(@Param('id', ParseUUIDPipe) id: string) {
     return this.leiturasService.buscarPorId(id);

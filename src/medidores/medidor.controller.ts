@@ -28,6 +28,11 @@ export class MedidoresController {
     return this.medidoresService.listarTodos();
   }
 
+  @Get('contar')
+  contar() {
+    return this.medidoresService.contar();
+  }
+
   // Busca somente um medidor (carrega também todas as informações do imóvel).
   @Get(':id')
   buscarPorId(@Param('id', ParseUUIDPipe) id: string) {

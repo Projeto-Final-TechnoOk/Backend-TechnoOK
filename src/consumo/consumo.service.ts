@@ -117,4 +117,48 @@ export class ConsumoService {
     // 1- Transforma as entradas do mapa {[chave, valor], [chave, valor], [chave, valor]...} para um array com "Array.from(mapa.entries())"
     // 2- Transforma os elementos do array que estão atualmente [9, 15] (exemplo) para {name:'9', value:15}
   }
+
+  async calcularMediaMesAtualPorTipo() {
+    const agora = new Date();
+    const anoAtual = agora.getFullYear();
+    const mesAtual = agora.getMonth() + 1;
+
+    const medidores = await this.medidorRepository.find();
+
+    const consumosPorTipo = {
+      ENERGIA: [] as number[],
+      AGUA: [] as number[],
+      GAS: [] as number[],
+    };
+
+    for (const medidor of medidores) {
+      const consumosMensais = await this.calcular(medidor.id, 'mes', anoAtual);
+
+      const consumoMesAtual = consumosMensais.find(
+        (consumo) => Number(consumo.name) === mesAtual,
+      );
+
+      if (!consumoMesAtual) {
+        continue;
+      }
+
+      consumosPorTipo[medidor.tipo].push(consumoMesAtual.value);
+    }
+
+    const calcularMedia = (valores: number[]): number => {
+      if (valores.length === 0) {
+        return 0;
+      }
+
+      const soma = valores.reduce((total, valor) => total + valor, 0);
+
+      return Number((soma / valores.length).toFixed(3));
+    };
+
+    return {
+      energia: calcularMedia(consumosPorTipo.ENERGIA),
+      agua: calcularMedia(consumosPorTipo.AGUA),
+      gas: calcularMedia(consumosPorTipo.GAS),
+    };
+  }
 }

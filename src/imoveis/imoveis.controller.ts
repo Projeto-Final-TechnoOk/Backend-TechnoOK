@@ -21,6 +21,11 @@ export class ImoveisController {
     return this.imoveisService.listarTodos();
   }
 
+  @Get('contar')
+  contar() {
+    return this.imoveisService.contar();
+  }
+
   @Get(':id')
   buscarPorId(@Param('id', ParseUUIDPipe) id: string) {
     return this.imoveisService.buscarPorId(id);

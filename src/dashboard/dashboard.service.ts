@@ -14,17 +14,26 @@ export class DashboardService {
   ) {}
 
   async obterResumo() {
-    const [quantidadeImoveis, quantidadeMedidores, leiturasNoMes] =
-      await Promise.all([
-        this.imoveisService.contar(),
-        this.medidoresService.contar(),
-        this.leiturasService.contarDoMesAtual(),
-      ]);
+    const [
+      quantidadeImoveis,
+      quantidadeMedidores,
+      leiturasNoMes,
+      mediasConsumo,
+    ] = await Promise.all([
+      this.imoveisService.contar(),
+      this.medidoresService.contar(),
+      this.leiturasService.contar(),
+      this.consumoService.calcularMediaMesAtualPorTipo(),
+    ]);
 
     return {
       quantidadeImoveis,
       quantidadeMedidores,
       leiturasNoMes,
+
+      mediaEnergia: mediasConsumo.energia,
+      mediaAgua: mediasConsumo.agua,
+      mediaGas: mediasConsumo.gas,
     };
   }
 }
