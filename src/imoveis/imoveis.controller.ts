@@ -1,12 +1,15 @@
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { ImoveisService } from './imoveis.service';
 import { CriarImovelDto } from './dtos/criar-imovel.dto';
@@ -19,6 +22,17 @@ export class ImoveisController {
   @Get()
   listarTodos() {
     return this.imoveisService.listarTodos();
+  }
+
+  @Get('paginado')
+  listarPaginado(
+    @Query('pagina', new DefaultValuePipe(1), ParseIntPipe)
+    pagina: number,
+
+    @Query('limite', new DefaultValuePipe(5), ParseIntPipe)
+    limite: number,
+  ) {
+    return this.imoveisService.listarPaginado(pagina, limite);
   }
 
   @Get('contar')

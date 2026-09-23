@@ -9,6 +9,7 @@ import { Repository } from 'typeorm';
 import { Imovel } from './imovel.entity';
 import { CriarImovelDto } from './dtos/criar-imovel.dto';
 import { AtualizarImovelDto } from './dtos/atualizar-imovel.dto';
+import { ImoveisPaginados } from './types/imoveis-paginados.type';
 
 @Injectable()
 export class ImoveisService {
@@ -19,6 +20,32 @@ export class ImoveisService {
 
   async listarTodos(): Promise<Imovel[]> {
     return this.imoveisRepository.find();
+  }
+
+  async listarPaginado(
+    pagina: number,
+    limite: number,
+  ): Promise<ImoveisPaginados> {
+    if (pagina < 1) {
+      throw new BadRequestException('A página deve ser maior ou igual a 1.');
+    }
+
+    if (limite < 1 || limite > 100) {
+      throw new BadRequestException('O limite deve estar entre 1 e 100.');
+    }
+
+    const [imoveis, total] = await this.imoveisRepository.findAndCount({
+      skip: (pagina - 1) * limite,
+      take: limite,
+    });
+
+    return {
+      dados: imoveis,
+      pagina,
+      limite,
+      total,
+      totalPaginas: Math.ceil(total / limite),
+    };
   }
 
   async buscarPorId(id: string): Promise<Imovel> {

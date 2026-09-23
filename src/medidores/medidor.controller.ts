@@ -1,9 +1,11 @@
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   ParseUUIDPipe,
   Patch,
   Post,
@@ -26,6 +28,14 @@ export class MedidoresController {
   @Get()
   listarTodos() {
     return this.medidoresService.listarTodos();
+  }
+
+  @Get('paginado')
+  listarPaginado(
+    @Query('pagina', new DefaultValuePipe(1), ParseIntPipe) pagina: number,
+    @Query('limite', new DefaultValuePipe(50), ParseIntPipe) limite: number,
+  ) {
+    return this.medidoresService.listarPaginado(pagina, limite);
   }
 
   @Get('contar')

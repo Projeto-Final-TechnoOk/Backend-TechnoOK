@@ -8,8 +8,8 @@ import { Leitura } from './leitura.entity';
 import { CriarLeituraDto } from './dtos/criar-leitura.dto';
 import { MedidoresService } from '../medidores/medidores.service';
 import { InjectRepository } from '@nestjs/typeorm';
-import { LeituraListagem } from './types/leitura-listagem.type';
 import { LeiturasMapper } from './mappers/leituras.mapper';
+import { LeiturasPaginadas } from './types/leituras-paginadas.type';
 
 @Injectable()
 export class LeiturasService {
@@ -19,16 +19,45 @@ export class LeiturasService {
     private readonly medidoresService: MedidoresService,
   ) {}
 
-  async listarTodos(): Promise<LeituraListagem[]> {
-    const leituras = await this.leiturasRepository.find({
+  async listarTodos() {
+    return this.leiturasRepository.find();
+  }
+
+  async listarPaginado(
+    pagina: number,
+    limite: number,
+  ): Promise<LeiturasPaginadas> {
+    if (pagina < 1) {
+      throw new BadRequestException('A página deve ser maior ou igual a 1.');
+    }
+
+    if (limite < 1 || limite > 100) {
+      throw new BadRequestException('O limite deve estar entre 1 e 100.');
+    }
+
+    const [leituras, total] = await this.leiturasRepository.findAndCount({
       relations: {
         medidor: true,
       },
+      order: {
+        dataHora: 'DESC',
+      },
+
+      skip: (pagina - 1) * limite,
+      take: limite,
     });
 
-    return leituras.map((leitura) =>
+    const dados = leituras.map((leitura) =>
       LeiturasMapper.entityParaListagem(leitura),
     );
+
+    return {
+      dados,
+      pagina,
+      limite,
+      total,
+      totalPaginas: Math.ceil(total / limite),
+    };
   }
 
   async buscarPorId(id: string): Promise<Leitura> {

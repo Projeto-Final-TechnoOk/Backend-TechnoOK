@@ -11,6 +11,7 @@ import { AtualizarMedidorDto } from './dtos/atualizar-medidor.dto';
 import { ImoveisService } from '../imoveis/imoveis.service';
 import { MedidoresMapper } from './mappers/medidores.mapper';
 import { MedidorListagem } from './types/medidor-listagem.type';
+import { MedidoresPaginados } from './types/medidores-paginados.type';
 
 @Injectable()
 export class MedidoresService {
@@ -31,6 +32,44 @@ export class MedidoresService {
     return medidores.map((medidor) =>
       MedidoresMapper.entityParaListagem(medidor),
     );
+  }
+
+  async listarPaginado(
+    pagina: number,
+    limite: number,
+  ): Promise<MedidoresPaginados> {
+    if (pagina < 1) {
+      throw new BadRequestException('A página deve ser maior ou igual a 1.');
+    }
+    if (limite < 1 || limite > 100) {
+      throw new BadRequestException('O limite deve estar entre 1 e 100.');
+    }
+
+    const [medidores, total] = await this.medidoresRepository.findAndCount({
+      relations: {
+        imovel: true,
+      },
+      order: {
+        imovel: {
+          nome: 'DESC',
+        },
+      },
+
+      skip: (pagina - 1) * limite,
+      take: limite,
+    });
+
+    const dados = medidores.map((medidor) =>
+      MedidoresMapper.entityParaListagem(medidor),
+    );
+
+    return {
+      dados,
+      pagina,
+      limite,
+      total,
+      totalPaginas: Math.ceil(total / limite),
+    };
   }
 
   // Busca somente um medidor (carrega também todas as informações do imóvel).
