@@ -82,14 +82,57 @@ export class LeiturasService {
         "O campo de 'Id do Medidor' deve conter algum valor",
       );
     }
+
     const medidor = await this.medidoresService.buscarPorId(medidorId);
+
+    const ultimaLeitura = await this.leiturasRepository.findOne({
+      where: {
+        medidor: {
+          id: medidorId,
+        },
+      },
+
+      order: {
+        dataHora: 'DESC',
+        id: 'DESC',
+      },
+    });
+
+    const ultimoValor = ultimaLeitura ? Number(ultimaLeitura.valor) : 0;
+
+    let valor: number;
+
+    if (leituraNova.valor !== undefined) {
+      if (leituraNova.valor < ultimoValor) {
+        throw new BadRequestException(
+          `O valor da leitura não pode ser menor que a última leitura registrada (${ultimoValor.toFixed(3)}).`,
+        );
+      }
+
+      valor = leituraNova.valor;
+    } else {
+      const incremento = this.gerarIncrementoAleatorio();
+
+      valor = ultimoValor + incremento;
+    }
+
     const novaLeitura = this.leiturasRepository.create({
       dataHora: new Date(),
-      valor: leituraNova.valor,
+      valor,
       medidor,
     });
 
     return this.leiturasRepository.save(novaLeitura);
+  }
+
+  private gerarIncrementoAleatorio(): number {
+    const minimo = 0;
+    const maximo = 40000;
+
+    const incremento =
+      Math.floor(Math.random() * (maximo - minimo + 1)) + minimo;
+
+    return incremento / 1000;
   }
 
   async contar(): Promise<number> {

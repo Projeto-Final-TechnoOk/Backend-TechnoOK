@@ -51,7 +51,7 @@ export class MedidoresService {
       },
       order: {
         imovel: {
-          nome: 'DESC',
+          nome: 'ASC',
         },
       },
 

@@ -1,12 +1,12 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber, IsUUID, Min } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsNotEmpty, IsNumber, IsOptional, IsUUID, Min } from 'class-validator';
 
 export class CriarLeituraDto {
-  @ApiProperty()
-  @IsNumber()
-  @IsNotEmpty()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 3 })
   @Min(0)
-  valor!: number;
+  valor?: number;
 
   @ApiProperty()
   @IsUUID()
