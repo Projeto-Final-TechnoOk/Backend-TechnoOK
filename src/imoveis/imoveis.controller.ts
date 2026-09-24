@@ -6,6 +6,7 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  ParseEnumPipe,
   ParseUUIDPipe,
   Patch,
   Post,
@@ -14,6 +15,8 @@ import {
 import { ImoveisService } from './imoveis.service';
 import { CriarImovelDto } from './dtos/criar-imovel.dto';
 import { AtualizarImovelDto } from './dtos/atualizar-imovel.dto';
+import { TipoMedidor } from '../medidores/enums/tipo-medidor.enum';
+import { PeriodoConsumo } from './enums/periodo-consumo.enum';
 
 @Controller('imoveis')
 export class ImoveisController {
@@ -48,6 +51,25 @@ export class ImoveisController {
   @Get(':id/medidores')
   buscarComMedidores(@Param('id', ParseUUIDPipe) id: string) {
     return this.imoveisService.buscarComMedidores(id);
+  }
+
+  @Get(':id/detalhes')
+  buscarComDetalhes(@Param('id', ParseUUIDPipe) id: string) {
+    return this.imoveisService.buscarComDetalhes(id);
+  }
+
+  @Get(':id/consumo')
+  buscarConsumo(
+    @Param('id', ParseUUIDPipe)
+    id: string,
+
+    @Query('tipo', new ParseEnumPipe(TipoMedidor))
+    tipo: TipoMedidor,
+
+    @Query('periodo', new ParseEnumPipe(PeriodoConsumo))
+    periodo: PeriodoConsumo,
+  ) {
+    return this.imoveisService.buscarConsumo(id, tipo, periodo);
   }
 
   @Post()
