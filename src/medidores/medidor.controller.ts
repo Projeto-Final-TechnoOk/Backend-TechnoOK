@@ -5,6 +5,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseEnumPipe,
   ParseIntPipe,
   ParseUUIDPipe,
   Patch,
@@ -16,6 +17,7 @@ import { CriarMedidorDto } from './dtos/criar-medidor.dto';
 import { AtualizarMedidorDto } from './dtos/atualizar-medidor.dto';
 import { ConsumoService } from '../consumo/consumo.service';
 import { ApiQuery } from '@nestjs/swagger';
+import { PeriodoConsumo } from '../imoveis/enums/periodo-consumo.enum';
 
 @Controller('medidores')
 export class MedidoresController {
@@ -49,10 +51,20 @@ export class MedidoresController {
     return this.medidoresService.buscarPorId(id);
   }
 
-  // Busca somente um medidor (carrega também todas as informações do imóvel e todas as leituras associadas a ele).
   @Get(':id/detalhes')
-  buscarComImovelELeituras(@Param('id', ParseUUIDPipe) id: string) {
-    return this.medidoresService.buscarComImovelELeituras(id);
+  buscarComDetalhes(@Param('id', ParseUUIDPipe) id: string) {
+    return this.medidoresService.buscarComDetalhes(id);
+  }
+
+  @Get(':id/comparacao')
+  buscarComparacaoConsumo(
+    @Param('id', ParseUUIDPipe)
+    id: string,
+
+    @Query('periodo', new ParseEnumPipe(PeriodoConsumo))
+    periodo: PeriodoConsumo,
+  ) {
+    return this.medidoresService.buscarComparacaoConsumo(id, periodo);
   }
 
   // Cria um novo registro de medidor.

@@ -6,18 +6,24 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Medidor } from './medidor.entity';
 import { Repository } from 'typeorm';
+import { Leitura } from '../leituras/leitura.entity';
+import { MedidorDetalhes } from './types/medidor-detalhes.type';
 import { CriarMedidorDto } from './dtos/criar-medidor.dto';
 import { AtualizarMedidorDto } from './dtos/atualizar-medidor.dto';
 import { ImoveisService } from '../imoveis/imoveis.service';
 import { MedidoresMapper } from './mappers/medidores.mapper';
 import { MedidorListagem } from './types/medidor-listagem.type';
 import { MedidoresPaginados } from './types/medidores-paginados.type';
+import { PeriodoConsumo } from '../imoveis/enums/periodo-consumo.enum';
+import { ComparacaoConsumoMedidor } from './types/comparacao-consumo-medidor.type';
 
 @Injectable()
 export class MedidoresService {
   constructor(
     @InjectRepository(Medidor)
     private readonly medidoresRepository: Repository<Medidor>,
+    @InjectRepository(Leitura)
+    private readonly leiturasRepository: Repository<Leitura>,
     private readonly imoveisService: ImoveisService,
   ) {}
 
@@ -88,13 +94,14 @@ export class MedidoresService {
     return medidor;
   }
 
-  // Busca somente um medidor (carrega também todas as informações do imóvel e todas as leituras associadas a ele).
-  async buscarComImovelELeituras(id: string): Promise<Medidor> {
+  async buscarComDetalhes(id: string): Promise<MedidorDetalhes> {
     const medidor = await this.medidoresRepository.findOne({
-      where: { id },
+      where: {
+        id,
+      },
+
       relations: {
         imovel: true,
-        leituras: true,
       },
     });
 
@@ -102,7 +109,130 @@ export class MedidoresService {
       throw new NotFoundException('Medidor não encontrado');
     }
 
-    return medidor;
+    const ultimasLeituras = await this.leiturasRepository.find({
+      where: {
+        medidor: {
+          id,
+        },
+      },
+
+      order: {
+        dataHora: 'DESC',
+        id: 'DESC',
+      },
+
+      take: 50,
+    });
+
+    const ultimaLeitura = ultimasLeituras[0] ?? null;
+
+    return {
+      id: medidor.id,
+      identificador: medidor.identificador,
+      tipo: medidor.tipo,
+
+      imovel: {
+        id: medidor.imovel.id,
+        nome: medidor.imovel.nome,
+        endereco: medidor.imovel.endereco,
+      },
+
+      ultimaLeitura: ultimaLeitura
+        ? {
+            id: ultimaLeitura.id,
+            dataHora: ultimaLeitura.dataHora,
+            valor: Number(ultimaLeitura.valor),
+          }
+        : null,
+
+      ultimasLeituras: ultimasLeituras.map((leitura) => ({
+        id: leitura.id,
+        dataHora: leitura.dataHora,
+        valor: Number(leitura.valor),
+      })),
+    };
+  }
+
+  async buscarComparacaoConsumo(
+    id: string,
+    periodo: PeriodoConsumo,
+  ): Promise<ComparacaoConsumoMedidor> {
+    // Busca o medidor atual para descobrir seu tipo
+    const medidorAtual = await this.buscarPorId(id);
+
+    // Busca todos os medidores do sistema que possuem o mesmo tipo
+    const medidoresMesmoTipo = await this.medidoresRepository.find({
+      where: {
+        tipo: medidorAtual.tipo,
+      },
+
+      relations: {
+        imovel: true,
+      },
+    });
+
+    /*
+     * Um imóvel pode possuir mais de um medidor do mesmo tipo.
+     * Por isso guardamos somente os IDs únicos dos imóveis,
+     * evitando calcular o consumo do mesmo imóvel mais de uma vez.
+     */
+    const imoveisIds = [
+      ...new Set(medidoresMesmoTipo.map((medidor) => medidor.imovel.id)),
+    ];
+
+    /*
+     * Reutiliza o cálculo de consumo que já existe no ImoveisService.
+     * Cada retorno contém todos os medidores daquele tipo
+     * pertencentes ao imóvel.
+     */
+    const consumosPorImovel = await Promise.all(
+      imoveisIds.map((imovelId) =>
+        this.imoveisService.buscarConsumo(imovelId, medidorAtual.tipo, periodo),
+      ),
+    );
+
+    // Junta os medidores de todos os imóveis em uma única lista
+    const medidoresComConsumo = consumosPorImovel.flatMap(
+      (consumo) => consumo.medidores,
+    );
+
+    // Remove o próprio medidor da comparação
+    const outrosMedidores = medidoresComConsumo.filter(
+      (medidor) => medidor.id !== medidorAtual.id,
+    );
+
+    const unidade = consumosPorImovel[0]?.unidade ?? '';
+
+    // Caso não exista nenhum outro medidor daquele tipo
+    if (outrosMedidores.length === 0) {
+      return {
+        tipo: medidorAtual.tipo,
+        periodo,
+        unidade,
+        mediaOutrosMedidores: null,
+        quantidadeOutrosMedidores: 0,
+      };
+    }
+
+    // Calcula o consumo total de cada um dos outros medidores
+    const consumosTotais = outrosMedidores.map((medidor) =>
+      medidor.consumos.reduce((soma, consumo) => soma + consumo, 0),
+    );
+
+    // Calcula a média global dos outros medidores
+    const media =
+      consumosTotais.reduce((soma, consumo) => soma + consumo, 0) /
+      consumosTotais.length;
+
+    return {
+      tipo: medidorAtual.tipo,
+      periodo,
+      unidade,
+
+      mediaOutrosMedidores: Number(media.toFixed(3)),
+
+      quantidadeOutrosMedidores: outrosMedidores.length,
+    };
   }
 
   // Cria um novo registro de medidor.
