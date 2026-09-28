@@ -19,6 +19,10 @@ export class ConsumoService {
     private readonly medidorRepository: Repository<Medidor>,
   ) {}
 
+  // =========
+  // Dashboard
+  // =========
+
   async calcular(medidorId: string, nivel: Nivel, ano?: number, mes?: number) {
     if (!(await this.medidorRepository.exists({ where: { id: medidorId } }))) {
       throw new NotFoundException('Medidor não encontrado.');
@@ -118,40 +122,49 @@ export class ConsumoService {
     // 2- Transforma os elementos do array que estão atualmente [9, 15] (exemplo) para {name:'9', value:15}
   }
 
+  // ============================
+  // Página de Medidor Específico
+  // ============================
+
+  // Calcula a média de consumo do mês atual separadamente para Energia, Água e Gás
   async calcularMediaMesAtualPorTipo() {
     const agora = new Date();
     const anoAtual = agora.getFullYear();
     const mesAtual = agora.getMonth() + 1;
 
+    // Busca todos os medidores cadastrados
     const medidores = await this.medidorRepository.find();
 
+    // Guarda os consumos encontrados separadamente de acordo com o tipo do medidor
     const consumosPorTipo = {
       ENERGIA: [] as number[],
       AGUA: [] as number[],
       GAS: [] as number[],
     };
 
+    // Calcula o consumo mensal de cada medidor e recupera somente o valor correspondente ao mês atual
     for (const medidor of medidores) {
       const consumosMensais = await this.calcular(medidor.id, 'mes', anoAtual);
-
       const consumoMesAtual = consumosMensais.find(
         (consumo) => Number(consumo.name) === mesAtual,
       );
 
+      // Ignora medidores que não possuem consumo registrado no mês atual
       if (!consumoMesAtual) {
         continue;
       }
 
+      // Adiciona o consumo à lista correspondente ao tipo do medidor
       consumosPorTipo[medidor.tipo].push(consumoMesAtual.value);
     }
 
+    // Calcula a média dos valores de uma lista e retorna 0 quando nenhum consumo estiver disponível
     const calcularMedia = (valores: number[]): number => {
       if (valores.length === 0) {
         return 0;
       }
 
       const soma = valores.reduce((total, valor) => total + valor, 0);
-
       return Number((soma / valores.length).toFixed(3));
     };
 

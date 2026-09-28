@@ -3,19 +3,25 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+
 import { InjectRepository } from '@nestjs/typeorm';
-import { Medidor } from './medidor.entity';
 import { Repository } from 'typeorm';
+
+import { Medidor } from './medidor.entity';
 import { Leitura } from '../leituras/leitura.entity';
-import { MedidorDetalhes } from './types/medidor-detalhes.type';
+
+import { ImoveisService } from '../imoveis/imoveis.service';
+
 import { CriarMedidorDto } from './dtos/criar-medidor.dto';
 import { AtualizarMedidorDto } from './dtos/atualizar-medidor.dto';
-import { ImoveisService } from '../imoveis/imoveis.service';
-import { MedidoresMapper } from './mappers/medidores.mapper';
+
+import { MedidorDetalhes } from './types/medidor-detalhes.type';
 import { MedidorListagem } from './types/medidor-listagem.type';
 import { MedidoresPaginados } from './types/medidores-paginados.type';
-import { PeriodoConsumo } from '../imoveis/enums/periodo-consumo.enum';
 import { ComparacaoConsumoMedidor } from './types/comparacao-consumo-medidor.type';
+import { PeriodoConsumo } from '../imoveis/enums/periodo-consumo.enum';
+
+import { MedidoresMapper } from './mappers/medidores.mapper';
 
 @Injectable()
 export class MedidoresService {
@@ -27,7 +33,11 @@ export class MedidoresService {
     private readonly imoveisService: ImoveisService,
   ) {}
 
-  // Lista todos os medidores (cada medidor carrega também o id e o nome do imóvel).
+  // ===========
+  // CRUD Básico
+  // ===========
+
+  // Lista todos os medidores cadastrados (Cada medidor carrega também o ID e o nome do imóvel associado)
   async listarTodos(): Promise<MedidorListagem[]> {
     const medidores = await this.medidoresRepository.find({
       relations: {
@@ -40,6 +50,100 @@ export class MedidoresService {
     );
   }
 
+  // Busca um medidor pelo seu ID (Carrega também todas as informações do imóvel associado)
+  async buscarPorId(id: string): Promise<Medidor> {
+    const medidor = await this.medidoresRepository.findOne({
+      where: {
+        id,
+      },
+      relations: {
+        imovel: true,
+      },
+    });
+
+    if (!medidor) {
+      throw new NotFoundException('Medidor não encontrado');
+    }
+    return medidor;
+  }
+
+  // Cria um novo medidor e associa o registro ao imóvel informado no DTO
+  async criar(medidorNovo: CriarMedidorDto): Promise<Medidor> {
+    const identificador = medidorNovo.identificador.trim();
+    const imovelId = medidorNovo.imovelId.trim();
+    if (!identificador || !imovelId) {
+      throw new BadRequestException(
+        "Os campos de 'Identificador' e 'Id do Imóvel' devem conter algum valor",
+      );
+    }
+
+    const imovel = await this.imoveisService.buscarPorId(imovelId);
+    const novoMedidor = this.medidoresRepository.create({
+      identificador,
+      tipo: medidorNovo.tipo,
+      imovel,
+    });
+    return this.medidoresRepository.save(novoMedidor);
+  }
+
+  // Atualiza os dados de um medidor existente (Somente os campos recebidos no DTO são alterados)
+  async atualizar(
+    id: string,
+    medidorAtualizado: AtualizarMedidorDto,
+  ): Promise<Medidor> {
+    const medidor = await this.buscarPorId(id);
+    if (medidorAtualizado.identificador !== undefined) {
+      const identificador = medidorAtualizado.identificador.trim();
+
+      if (!identificador) {
+        throw new BadRequestException(
+          "'Identificador' não pode conter apenas espaços.",
+        );
+      }
+      medidor.identificador = identificador;
+    }
+
+    if (medidorAtualizado.tipo !== undefined) {
+      medidor.tipo = medidorAtualizado.tipo;
+    }
+    if (medidorAtualizado.imovelId !== undefined) {
+      const imovelId = medidorAtualizado.imovelId.trim();
+      if (!imovelId) {
+        throw new BadRequestException(
+          "'Id do Imóvel' não pode conter apenas espaços.",
+        );
+      }
+
+      medidor.imovel = await this.imoveisService.buscarPorId(imovelId);
+    }
+
+    return this.medidoresRepository.save(medidor);
+  }
+
+  // Deleta um medidor e todas as leituras associadas a ele !!! As leituras são removidas automaticamente pela relação com cascade !!!
+  async deletar(id: string): Promise<{ mensagem: string }> {
+    const medidor = await this.buscarPorId(id);
+    await this.medidoresRepository.remove(medidor);
+
+    return {
+      mensagem: `O medidor de identificador '${medidor.identificador}' e suas leituras foram excluídos com sucesso`,
+    };
+  }
+
+  // =========
+  // Dashboard
+  // =========
+
+  // Retorna a quantidade total de medidores cadastrados
+  async contar(): Promise<number> {
+    return this.medidoresRepository.count();
+  }
+
+  // ===================
+  // Tabela de Medidores
+  // ===================
+
+  // Busca os medidores de forma paginada para exibição na tabela (Cada medidor também retorna as informações necessárias do imóvel)
   async listarPaginado(
     pagina: number,
     limite: number,
@@ -60,11 +164,9 @@ export class MedidoresService {
           nome: 'ASC',
         },
       },
-
       skip: (pagina - 1) * limite,
       take: limite,
     });
-
     const dados = medidores.map((medidor) =>
       MedidoresMapper.entityParaListagem(medidor),
     );
@@ -78,28 +180,17 @@ export class MedidoresService {
     };
   }
 
-  // Busca somente um medidor (carrega também todas as informações do imóvel).
-  async buscarPorId(id: string): Promise<Medidor> {
-    const medidor = await this.medidoresRepository.findOne({
-      where: { id },
-      relations: {
-        imovel: true,
-      },
-    });
+  // ===================
+  // Medidor Específico
+  // ===================
 
-    if (!medidor) {
-      throw new NotFoundException('Medidor não encontrado');
-    }
-
-    return medidor;
-  }
-
+  // Busca as informações utilizadas na parte superior da tela específica de um medidor
+  // Retorna: informações do medidor, imóvel associado, última leitura e as 50 últimas leituras.
   async buscarComDetalhes(id: string): Promise<MedidorDetalhes> {
     const medidor = await this.medidoresRepository.findOne({
       where: {
         id,
       },
-
       relations: {
         imovel: true,
       },
@@ -115,12 +206,10 @@ export class MedidoresService {
           id,
         },
       },
-
       order: {
         dataHora: 'DESC',
         id: 'DESC',
       },
-
       take: 50,
     });
 
@@ -130,13 +219,11 @@ export class MedidoresService {
       id: medidor.id,
       identificador: medidor.identificador,
       tipo: medidor.tipo,
-
       imovel: {
         id: medidor.imovel.id,
         nome: medidor.imovel.nome,
         endereco: medidor.imovel.endereco,
       },
-
       ultimaLeitura: ultimaLeitura
         ? {
             id: ultimaLeitura.id,
@@ -144,7 +231,6 @@ export class MedidoresService {
             valor: Number(ultimaLeitura.valor),
           }
         : null,
-
       ultimasLeituras: ultimasLeituras.map((leitura) => ({
         id: leitura.id,
         dataHora: leitura.dataHora,
@@ -153,19 +239,23 @@ export class MedidoresService {
     };
   }
 
+  // =================================
+  // Comparação de Consumo do Medidor
+  // =================================
+
+  // Compara o consumo do medidor atual com a média de todos os outros medidores do mesmo tipo no sistema
   async buscarComparacaoConsumo(
     id: string,
     periodo: PeriodoConsumo,
   ): Promise<ComparacaoConsumoMedidor> {
-    // Busca o medidor atual para descobrir seu tipo
+    // Busca o medidor atual para identificar seu tipo
     const medidorAtual = await this.buscarPorId(id);
 
-    // Busca todos os medidores do sistema que possuem o mesmo tipo
+    // Busca todos os medidores do sistema que possuem o mesmo tipo do medidor atual
     const medidoresMesmoTipo = await this.medidoresRepository.find({
       where: {
         tipo: medidorAtual.tipo,
       },
-
       relations: {
         imovel: true,
       },
@@ -173,17 +263,15 @@ export class MedidoresService {
 
     /*
      * Um imóvel pode possuir mais de um medidor do mesmo tipo.
-     * Por isso guardamos somente os IDs únicos dos imóveis,
-     * evitando calcular o consumo do mesmo imóvel mais de uma vez.
+     * Por isso, são armazenados somente os IDs únicos dos imóveis, evitando calcular o consumo do mesmo imóvel mais de uma vez.
      */
     const imoveisIds = [
       ...new Set(medidoresMesmoTipo.map((medidor) => medidor.imovel.id)),
     ];
 
     /*
-     * Reutiliza o cálculo de consumo que já existe no ImoveisService.
-     * Cada retorno contém todos os medidores daquele tipo
-     * pertencentes ao imóvel.
+     * Reutiliza o cálculo de consumo já existente no ImoveisService.
+     * Cada retorno contém todos os medidores daquele tipo pertencentes ao imóvel analisado.
      */
     const consumosPorImovel = await Promise.all(
       imoveisIds.map((imovelId) =>
@@ -201,9 +289,10 @@ export class MedidoresService {
       (medidor) => medidor.id !== medidorAtual.id,
     );
 
+    // Obtém a unidade correspondente ao tipo do medidor
     const unidade = consumosPorImovel[0]?.unidade ?? '';
 
-    // Caso não exista nenhum outro medidor daquele tipo
+    // Caso não exista outro medidor do mesmo tipo, informa que não há uma média disponível
     if (outrosMedidores.length === 0) {
       return {
         tipo: medidorAtual.tipo,
@@ -214,12 +303,12 @@ export class MedidoresService {
       };
     }
 
-    // Calcula o consumo total de cada um dos outros medidores
+    // Calcula o consumo total de cada um dos outros medidores durante o período
     const consumosTotais = outrosMedidores.map((medidor) =>
       medidor.consumos.reduce((soma, consumo) => soma + consumo, 0),
     );
 
-    // Calcula a média global dos outros medidores
+    // Calcula a média global de consumo dos outros medidores do mesmo tipo
     const media =
       consumosTotais.reduce((soma, consumo) => soma + consumo, 0) /
       consumosTotais.length;
@@ -228,80 +317,8 @@ export class MedidoresService {
       tipo: medidorAtual.tipo,
       periodo,
       unidade,
-
       mediaOutrosMedidores: Number(media.toFixed(3)),
-
       quantidadeOutrosMedidores: outrosMedidores.length,
     };
-  }
-
-  // Cria um novo registro de medidor.
-  async criar(medidorNovo: CriarMedidorDto): Promise<Medidor> {
-    const identificador = medidorNovo.identificador.trim();
-    const imovelId = medidorNovo.imovelId.trim();
-
-    if (!identificador || !imovelId) {
-      throw new BadRequestException(
-        "Os campos de 'Identificador' e 'Id do Imóvel' devem conter algum valor",
-      );
-    }
-
-    const imovel = await this.imoveisService.buscarPorId(imovelId);
-
-    const novoMedidor = this.medidoresRepository.create({
-      identificador,
-      tipo: medidorNovo.tipo,
-      imovel,
-    });
-
-    return this.medidoresRepository.save(novoMedidor);
-  }
-
-  // Atualiza um registro de medidor.
-  async atualizar(
-    id: string,
-    medidorAtualizado: AtualizarMedidorDto,
-  ): Promise<Medidor> {
-    const medidor = await this.buscarPorId(id);
-
-    if (medidorAtualizado.identificador !== undefined) {
-      const identificador = medidorAtualizado.identificador.trim();
-      if (!identificador) {
-        throw new BadRequestException(
-          "'Identificador' não pode conter apenas espaços.",
-        );
-      }
-      medidor.identificador = identificador;
-    }
-
-    if (medidorAtualizado.tipo !== undefined) {
-      medidor.tipo = medidorAtualizado.tipo;
-    }
-
-    if (medidorAtualizado.imovelId !== undefined) {
-      const imovelId = medidorAtualizado.imovelId.trim();
-      if (!imovelId) {
-        throw new BadRequestException(
-          "'Id do Imóvel' não pode conter apenas espaços.",
-        );
-      }
-      medidor.imovel = await this.imoveisService.buscarPorId(imovelId);
-    }
-    return this.medidoresRepository.save(medidor);
-  }
-
-  // Deleta um regitro de medidor e todas as leituras associadas a ele.
-  async deletar(id: string): Promise<{ mensagem: string }> {
-    const medidor = await this.buscarPorId(id);
-
-    await this.medidoresRepository.remove(medidor);
-
-    return {
-      mensagem: `O medidor de identificador '${medidor.identificador}' e suas leituras foram excluídos com sucesso`,
-    };
-  }
-
-  async contar(): Promise<number> {
-    return this.medidoresRepository.count();
   }
 }
