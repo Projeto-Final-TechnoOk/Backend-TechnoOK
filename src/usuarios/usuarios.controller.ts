@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 
 import { UsuariosService } from './usuarios.service';
 
@@ -40,5 +40,16 @@ export class UsuariosController {
     usuarioNovo: CriarUsuarioDto,
   ): Promise<UsuarioSemSenha> {
     return this.usuariosService.criar(usuarioNovo);
+  }
+
+  // Verifica se é possível criar o primeiro admin
+  @Public()
+  @Get('primeiro-admin/disponivel')
+  async primeiroAdminDisponivel(): Promise<{ disponivel: boolean }> {
+    const disponivel = await this.usuariosService.primeiroAdminDisponivel();
+
+    return {
+      disponivel,
+    };
   }
 }

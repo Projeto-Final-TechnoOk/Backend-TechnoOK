@@ -1,98 +1,357 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# TechnoOK — Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Backend da aplicação **TechnoOK / Fink**, responsável pela API, regras de negócio, autenticação, autorização, persistência e processamento dos dados de telemetria.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## O que este projeto faz
 
-## Description
+O backend foi desenvolvido em **NestJS** e centraliza as regras do sistema. Entre suas principais responsabilidades estão:
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- autenticação de usuários com JWT;
+- autorização baseada em cargo (`ADMIN` e `USUARIO`);
+- criação do primeiro administrador no primeiro acesso;
+- criação de usuários por administradores autenticados;
+- CRUD de imóveis;
+- CRUD de medidores;
+- cadastro e listagem de leituras;
+- validação de leituras acumulativas;
+- cálculos de consumo;
+- dados consolidados para o Dashboard;
+- comparação de consumo entre medidores;
+- persistência no MySQL por meio do TypeORM;
+- execução automática de migrations antes da subida da API;
+- documentação da API com Swagger.
 
-## Project setup
+Em produção, o backend **não é exposto diretamente ao navegador**. As requisições chegam primeiro ao Nginx e são encaminhadas para o container da API.
 
-```bash
-$ npm install
+```text
+Browser
+   ↓
+Nginx :80
+   ↓ /api/*
+NestJS :3000
+   ↓
+TypeORM
+   ↓
+MySQL :3306
 ```
 
-## Compile and run the project
+## Tecnologias principais
 
-```bash
-# development
-$ npm run start
+- Node.js 22
+- NestJS
+- TypeScript
+- TypeORM
+- MySQL 8.4
+- JWT
+- bcrypt
+- class-validator
+- Swagger
+- Docker
+- Docker Compose
 
-# watch mode
-$ npm run start:dev
+## Estrutura principal de pastas
 
-# production mode
-$ npm run start:prod
+Pastas geradas automaticamente, como `node_modules` e `dist`, não são exibidas.
+
+```text
+backend/
+├── src/
+│   ├── auth/
+│   │   ├── decorators/
+│   │   ├── guards/
+│   │   ├── dtos/
+│   │   ├── types/
+│   │   ├── auth.controller.ts
+│   │   ├── auth.module.ts
+│   │   ├── auth.service.ts
+│   │   └── security.module.ts
+│   ├── usuarios/
+│   │   ├── dtos/
+│   │   ├── enums/
+│   │   ├── types/
+│   │   ├── usuario.entity.ts
+│   │   ├── usuarios.controller.ts
+│   │   ├── usuarios.module.ts
+│   │   └── usuarios.service.ts
+│   ├── imoveis/
+│   │   ├── dtos/
+│   │   ├── types/
+│   │   ├── imovel.entity.ts
+│   │   ├── imoveis.controller.ts
+│   │   ├── imoveis.module.ts
+│   │   └── imoveis.service.ts
+│   ├── medidores/
+│   │   ├── dtos/
+│   │   ├── enums/
+│   │   ├── types/
+│   │   ├── medidor.entity.ts
+│   │   ├── medidores.controller.ts
+│   │   ├── medidores.module.ts
+│   │   └── medidores.service.ts
+│   ├── leituras/
+│   │   ├── dtos/
+│   │   ├── mappers/
+│   │   ├── types/
+│   │   ├── leitura.entity.ts
+│   │   ├── leituras.controller.ts
+│   │   ├── leituras.module.ts
+│   │   └── leituras.service.ts
+│   ├── consumo/
+│   │   ├── consumo.module.ts
+│   │   └── consumo.service.ts
+│   ├── dashboard/
+│   │   ├── dashboard.controller.ts
+│   │   ├── dashboard.module.ts
+│   │   └── dashboard.service.ts
+│   ├── database/
+│   │   └── migrations/
+│   ├── app.module.ts
+│   └── main.ts
+├── database/
+│   └── seed-dev-suave.sql
+├── Dockerfile
+├── docker-compose.yml
+├── .dockerignore
+├── .env
+├── .env.example
+├── typeorm.config.ts
+├── nest-cli.json
+├── tsconfig.json
+├── tsconfig.build.json
+├── package.json
+└── package-lock.json
 ```
 
-## Run tests
+## Modelo principal de domínio
 
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+```text
+Imóvel
+  │
+  └── 1:N Medidor
+          │
+          └── 1:N Leitura
 ```
 
-## Deployment
+As leituras são acumulativas. O consumo é obtido pela diferença entre leituras consecutivas de um mesmo medidor.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## Autenticação e autorização
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+O login ocorre em:
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+```http
+POST /auth/login
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Após validar e-mail e senha, o backend gera um JWT. Nas requisições protegidas, o frontend envia:
 
-## Resources
+```http
+Authorization: Bearer <token>
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+O backend utiliza guards globais para validar autenticação e autorização.
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+### Primeiro administrador
 
-## Support
+Em uma instalação nova, quando ainda não existe nenhum usuário, o sistema permite criar o primeiro administrador.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```http
+GET  /usuarios/primeiro-admin/disponivel
+POST /usuarios/primeiro-admin
+```
 
-## Stay in touch
+Mesmo que alguém tente chamar a rota manualmente, o backend bloqueia a criação quando já existe usuário cadastrado.
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+### Criação normal de usuários
 
-## License
+Depois da inicialização do sistema, novos usuários são criados por um administrador autenticado:
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+```http
+POST /usuarios
+```
+
+Essa rota exige JWT válido e cargo `ADMIN`.
+
+## Variáveis de ambiente
+
+Exemplo de `.env`:
+
+```env
+DB_HOST=db
+DB_PORT=3306
+DB_USER=technook_user
+DB_PASS=sua_senha
+DB_NAME=telemetria_db
+
+JWT_SECRET=seu_segredo
+JWT_EXPIRES_IN=86400
+```
+
+> O `.env` real não deve ser versionado.
+
+`DB_HOST=db` funciona porque `db` é o alias do MySQL na rede Docker compartilhada.
+
+## Docker em produção
+
+O Dockerfile utiliza dois estágios:
+
+```text
+build
+  ↓
+npm ci
+  ↓
+nest build
+  ↓
+dist/
+
+runtime
+  ↓
+npm ci --omit=dev
+  ↓
+recebe dist/
+  ↓
+node dist/src/main
+```
+
+O Compose possui dois serviços principais.
+
+### `backend-migrate`
+
+Job temporário que executa:
+
+```bash
+npm run migration:run
+```
+
+`Exited (0)` significa que o job terminou corretamente.
+
+### `backend`
+
+Container permanente da API. Executa:
+
+```bash
+node dist/src/main
+```
+
+e escuta internamente na porta `3000`.
+
+O Nginx acessa a API por:
+
+```text
+backend:3000
+```
+
+## Primeira execução
+
+### 1. Prepare a infraestrutura
+
+Na pasta `infra`:
+
+```bash
+sudo ./docker-setup/setup.sh
+sudo docker compose up -d db
+```
+
+Aguarde o MySQL ficar `healthy`.
+
+### 2. Configure o `.env`
+
+Preencha o `.env` do backend com credenciais compatíveis com o banco definido na infraestrutura.
+
+### 3. Construa e suba o backend
+
+Na pasta `backend`:
+
+```bash
+sudo docker compose up -d --build
+```
+
+Esse comando constrói as imagens, executa as migrations e inicia a API.
+
+### 4. Verifique
+
+```bash
+sudo docker compose ps
+```
+
+Comportamento esperado:
+
+```text
+technook-backend-migrate-prod   Exited (0)
+technook-backend-prod           Up
+```
+
+Logs:
+
+```bash
+sudo docker compose logs -f backend
+```
+
+## Execuções seguintes
+
+Sem alteração de código:
+
+```bash
+sudo docker compose up -d
+```
+
+Após alterar o backend:
+
+```bash
+sudo docker compose up -d --build
+```
+
+Ver logs:
+
+```bash
+sudo docker compose logs -f backend
+```
+
+Parar:
+
+```bash
+sudo docker compose down
+```
+
+## Seed de dados
+
+A partir da pasta `backend`:
+
+```bash
+sudo docker exec -i technook-db-prod \
+  sh -c 'mysql --default-character-set=utf8mb4 -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE"' \
+  < database/seed-dev-suave.sql
+```
+
+A partir da raiz geral do projeto:
+
+```bash
+sudo docker exec -i technook-db-prod \
+  sh -c 'mysql --default-character-set=utf8mb4 -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE"' \
+  < backend/database/seed-dev-suave.sql
+```
+
+> O seed limpa e repopula as tabelas de telemetria.
+
+## Acessar o terminal MySQL
+
+```bash
+sudo docker exec -it technook-db-prod mysql -u technook_user -p telemetria_db
+```
+
+## Swagger
+
+Com a infraestrutura completa em execução:
+
+```text
+http://localhost/docs
+```
+
+## Comandos úteis
+
+```bash
+sudo docker compose up -d
+sudo docker compose up -d --build
+sudo docker compose ps
+sudo docker compose logs -f backend
+sudo docker compose down
+```

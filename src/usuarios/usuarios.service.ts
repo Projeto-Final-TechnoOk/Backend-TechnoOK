@@ -115,4 +115,9 @@ export class UsuariosService {
     const quantidadeUsuarios = await this.usuariosRepository.count();
     return quantidadeUsuarios > 0;
   }
+
+  // Verifica se o sistema ainda permite a criação do primeiro administrador
+  async primeiroAdminDisponivel(): Promise<boolean> {
+    return !(await this.existeAlgumUsuario());
+  }
 }
