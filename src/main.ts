@@ -10,6 +10,7 @@ async function bootstrap() {
     .setTitle('TechnoOK API')
     .setDescription('Documentação da API do projeto TechnoOK')
     .setVersion('1.0')
+    .addServer('/api')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

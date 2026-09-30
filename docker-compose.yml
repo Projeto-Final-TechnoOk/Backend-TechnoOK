@@ -1,0 +1,47 @@
+services:
+  backend-migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: build
+
+    container_name: technook-backend-migrate-prod
+
+    env_file:
+      - .env
+
+    command: npm run migration:run
+
+    networks:
+      - technook-network-prod
+
+    restart: 'no'
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+
+    container_name: technook-backend-prod
+
+    env_file:
+      - .env
+
+    expose:
+      - '3000'
+
+    networks:
+      technook-network-prod:
+        aliases:
+          - backend
+
+    depends_on:
+      backend-migrate:
+        condition: service_completed_successfully
+
+    restart: unless-stopped
+
+networks:
+  technook-network-prod:
+    external: true

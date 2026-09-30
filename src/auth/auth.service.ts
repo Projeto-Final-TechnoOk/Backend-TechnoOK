@@ -24,7 +24,7 @@ export class AuthService {
     const usuario = await this.usuariosService.buscarPorEmail(
       credenciais.email,
     );
-    // Utilizamos a mesma mensagem para e-mail inexistente e senha incorreta para não informar qual dado está errado.
+    // Utilizamos a mesma mensagem para e-mail inexistente e senha incorreta.
     if (!usuario) {
       throw new UnauthorizedException('E-mail ou senha inválidos.');
     }

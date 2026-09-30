@@ -248,7 +248,7 @@ export class MedidoresService {
     id: string,
     periodo: PeriodoConsumo,
   ): Promise<ComparacaoConsumoMedidor> {
-    // Busca o medidor atual para identificar seu tipo
+    // Busca o medidor atual
     const medidorAtual = await this.buscarPorId(id);
 
     // Busca todos os medidores do sistema que possuem o mesmo tipo do medidor atual

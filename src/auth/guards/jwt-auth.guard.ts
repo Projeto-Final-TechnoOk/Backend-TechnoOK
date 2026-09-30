@@ -16,7 +16,6 @@ import { JwtPayload } from '../types/jwt-payload.type';
 export class JwtAuthGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
-
     private readonly reflector: Reflector,
   ) {}
 
