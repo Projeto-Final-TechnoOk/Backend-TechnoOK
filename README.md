@@ -1,27 +1,29 @@
-# TechnoOK — Backend
+# Backend
 
-Backend da aplicação **TechnoOK / Fink**, responsável pela API, regras de negócio, autenticação, autorização, persistência e processamento dos dados de telemetria.
+Backend da aplicação, responsável pela API, regras de negócio, autenticação, autorização e acesso aos dados de telemetria.
 
-## O que este projeto faz
+O projeto foi desenvolvido em **NestJS** e utiliza **TypeORM** para comunicação com o MySQL.
 
-O backend foi desenvolvido em **NestJS** e centraliza as regras do sistema. Entre suas principais responsabilidades estão:
+## Responsabilidades
 
-- autenticação de usuários com JWT;
-- autorização baseada em cargo (`ADMIN` e `USUARIO`);
-- criação do primeiro administrador no primeiro acesso;
+O backend concentra:
+
+- autenticação com JWT;
+- autorização por cargo (`ADMIN` e `USUARIO`);
+- criação do primeiro administrador;
 - criação de usuários por administradores autenticados;
 - CRUD de imóveis;
 - CRUD de medidores;
 - cadastro e listagem de leituras;
 - validação de leituras acumulativas;
 - cálculos de consumo;
-- dados consolidados para o Dashboard;
+- dados do Dashboard;
 - comparação de consumo entre medidores;
-- persistência no MySQL por meio do TypeORM;
-- execução automática de migrations antes da subida da API;
+- persistência no MySQL;
+- execução de migrations;
 - documentação da API com Swagger.
 
-Em produção, o backend **não é exposto diretamente ao navegador**. As requisições chegam primeiro ao Nginx e são encaminhadas para o container da API.
+Em produção, o backend não é acessado diretamente pelo navegador. As requisições passam pelo Nginx:
 
 ```text
 Browser
@@ -35,7 +37,7 @@ TypeORM
 MySQL :3306
 ```
 
-## Tecnologias principais
+## Tecnologias
 
 - Node.js 22
 - NestJS
@@ -49,53 +51,22 @@ MySQL :3306
 - Docker
 - Docker Compose
 
-## Estrutura principal de pastas
+## Estrutura
 
-Pastas geradas automaticamente, como `node_modules` e `dist`, não são exibidas.
+Pastas geradas, como `node_modules` e `dist`, não são exibidas.
 
 ```text
 backend/
 ├── src/
 │   ├── auth/
 │   │   ├── decorators/
-│   │   ├── guards/
 │   │   ├── dtos/
+│   │   ├── guards/
 │   │   ├── types/
 │   │   ├── auth.controller.ts
 │   │   ├── auth.module.ts
 │   │   ├── auth.service.ts
 │   │   └── security.module.ts
-│   ├── usuarios/
-│   │   ├── dtos/
-│   │   ├── enums/
-│   │   ├── types/
-│   │   ├── usuario.entity.ts
-│   │   ├── usuarios.controller.ts
-│   │   ├── usuarios.module.ts
-│   │   └── usuarios.service.ts
-│   ├── imoveis/
-│   │   ├── dtos/
-│   │   ├── types/
-│   │   ├── imovel.entity.ts
-│   │   ├── imoveis.controller.ts
-│   │   ├── imoveis.module.ts
-│   │   └── imoveis.service.ts
-│   ├── medidores/
-│   │   ├── dtos/
-│   │   ├── enums/
-│   │   ├── types/
-│   │   ├── medidor.entity.ts
-│   │   ├── medidores.controller.ts
-│   │   ├── medidores.module.ts
-│   │   └── medidores.service.ts
-│   ├── leituras/
-│   │   ├── dtos/
-│   │   ├── mappers/
-│   │   ├── types/
-│   │   ├── leitura.entity.ts
-│   │   ├── leituras.controller.ts
-│   │   ├── leituras.module.ts
-│   │   └── leituras.service.ts
 │   ├── consumo/
 │   │   ├── consumo.module.ts
 │   │   └── consumo.service.ts
@@ -105,10 +76,41 @@ backend/
 │   │   └── dashboard.service.ts
 │   ├── database/
 │   │   └── migrations/
+│   ├── imoveis/
+│   │   ├── dtos/
+│   │   ├── enums/
+│   │   ├── types/
+│   │   ├── imovel.entity.ts
+│   │   ├── imoveis.controller.ts
+│   │   ├── imoveis.module.ts
+│   │   └── imoveis.service.ts
+│   ├── leituras/
+│   │   ├── dtos/
+│   │   ├── mappers/
+│   │   ├── types/
+│   │   ├── leitura.entity.ts
+│   │   ├── leituras.controller.ts
+│   │   ├── leituras.module.ts
+│   │   └── leituras.service.ts
+│   ├── medidores/
+│   │   ├── dtos/
+│   │   ├── enums/
+│   │   ├── mappers/
+│   │   ├── types/
+│   │   ├── medidor.entity.ts
+│   │   ├── medidores.controller.ts
+│   │   ├── medidores.module.ts
+│   │   └── medidores.service.ts
+│   ├── usuarios/
+│   │   ├── dtos/
+│   │   ├── enums/
+│   │   ├── types/
+│   │   ├── usuario.entity.ts
+│   │   ├── usuarios.controller.ts
+│   │   ├── usuarios.module.ts
+│   │   └── usuarios.service.ts
 │   ├── app.module.ts
 │   └── main.ts
-├── database/
-│   └── seed-dev-suave.sql
 ├── Dockerfile
 ├── docker-compose.yml
 ├── .dockerignore
@@ -122,7 +124,7 @@ backend/
 └── package-lock.json
 ```
 
-## Modelo principal de domínio
+## Modelo de domínio
 
 ```text
 Imóvel
@@ -132,17 +134,19 @@ Imóvel
           └── 1:N Leitura
 ```
 
-As leituras são acumulativas. O consumo é obtido pela diferença entre leituras consecutivas de um mesmo medidor.
+As leituras são acumulativas. O consumo é calculado pela diferença entre leituras consecutivas de um mesmo medidor.
 
 ## Autenticação e autorização
 
-O login ocorre em:
+### Login
 
 ```http
 POST /auth/login
 ```
 
-Após validar e-mail e senha, o backend gera um JWT. Nas requisições protegidas, o frontend envia:
+Após validar e-mail e senha, o backend gera um JWT.
+
+Nas rotas protegidas, o frontend envia:
 
 ```http
 Authorization: Bearer <token>
@@ -152,16 +156,14 @@ O backend utiliza guards globais para validar autenticação e autorização.
 
 ### Primeiro administrador
 
-Em uma instalação nova, quando ainda não existe nenhum usuário, o sistema permite criar o primeiro administrador.
+Em uma instalação nova, o sistema permite criar o primeiro administrador apenas enquanto não existir nenhum usuário cadastrado.
 
 ```http
 GET  /usuarios/primeiro-admin/disponivel
 POST /usuarios/primeiro-admin
 ```
 
-Mesmo que alguém tente chamar a rota manualmente, o backend bloqueia a criação quando já existe usuário cadastrado.
-
-### Criação normal de usuários
+### Criação de usuários
 
 Depois da inicialização do sistema, novos usuários são criados por um administrador autenticado:
 
@@ -188,11 +190,11 @@ JWT_EXPIRES_IN=86400
 
 > O `.env` real não deve ser versionado.
 
-`DB_HOST=db` funciona porque `db` é o alias do MySQL na rede Docker compartilhada.
+`DB_HOST=db` utiliza o alias do MySQL na rede Docker compartilhada.
 
 ## Docker em produção
 
-O Dockerfile utiliza dois estágios:
+O Dockerfile possui dois estágios:
 
 ```text
 build
@@ -212,29 +214,41 @@ recebe dist/
 node dist/src/main
 ```
 
-O Compose possui dois serviços principais.
+O Compose possui dois serviços.
 
 ### `backend-migrate`
 
-Job temporário que executa:
+Job temporário responsável por executar:
 
 ```bash
 npm run migration:run
 ```
 
-`Exited (0)` significa que o job terminou corretamente.
+Quando termina com:
+
+```text
+Exited (0)
+```
+
+as migrations foram executadas corretamente.
 
 ### `backend`
 
-Container permanente da API. Executa:
+Container permanente da API.
+
+Executa:
 
 ```bash
 node dist/src/main
 ```
 
-e escuta internamente na porta `3000`.
+e escuta internamente na porta:
 
-O Nginx acessa a API por:
+```text
+3000
+```
+
+O Nginx acessa o serviço por:
 
 ```text
 backend:3000
@@ -251,11 +265,11 @@ sudo ./docker-setup/setup.sh
 sudo docker compose up -d db
 ```
 
-Aguarde o MySQL ficar `healthy`.
+Aguarde o banco ficar `healthy`.
 
 ### 2. Configure o `.env`
 
-Preencha o `.env` do backend com credenciais compatíveis com o banco definido na infraestrutura.
+Preencha o `.env` do backend com as credenciais correspondentes às configuradas na infraestrutura.
 
 ### 3. Construa e suba o backend
 
@@ -265,7 +279,11 @@ Na pasta `backend`:
 sudo docker compose up -d --build
 ```
 
-Esse comando constrói as imagens, executa as migrations e inicia a API.
+Esse comando:
+
+1. constrói as imagens;
+2. executa as migrations;
+3. inicia a API.
 
 ### 4. Verifique
 
@@ -288,54 +306,16 @@ sudo docker compose logs -f backend
 
 ## Execuções seguintes
 
-Sem alteração de código:
+Sem alteração no backend:
 
 ```bash
 sudo docker compose up -d
 ```
 
-Após alterar o backend:
+Após alterar o código:
 
 ```bash
 sudo docker compose up -d --build
-```
-
-Ver logs:
-
-```bash
-sudo docker compose logs -f backend
-```
-
-Parar:
-
-```bash
-sudo docker compose down
-```
-
-## Seed de dados
-
-A partir da pasta `backend`:
-
-```bash
-sudo docker exec -i technook-db-prod \
-  sh -c 'mysql --default-character-set=utf8mb4 -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE"' \
-  < database/seed-dev-suave.sql
-```
-
-A partir da raiz geral do projeto:
-
-```bash
-sudo docker exec -i technook-db-prod \
-  sh -c 'mysql --default-character-set=utf8mb4 -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE"' \
-  < backend/database/seed-dev-suave.sql
-```
-
-> O seed limpa e repopula as tabelas de telemetria.
-
-## Acessar o terminal MySQL
-
-```bash
-sudo docker exec -it technook-db-prod mysql -u technook_user -p telemetria_db
 ```
 
 ## Swagger
@@ -348,10 +328,36 @@ http://localhost/docs
 
 ## Comandos úteis
 
+### Ver containers
+
 ```bash
-sudo docker compose up -d
-sudo docker compose up -d --build
 sudo docker compose ps
+```
+
+### Ver logs
+
+```bash
 sudo docker compose logs -f backend
+```
+
+### Reconstruir e subir
+
+```bash
+sudo docker compose up -d --build
+```
+
+### Parar o backend
+
+```bash
 sudo docker compose down
 ```
+
+## Observação sobre o banco
+
+A população de dados de teste é responsabilidade do módulo `infra`, por meio do script:
+
+```text
+infra/database/seed-nao-usar-em-prod.sql
+```
+
+As instruções para executar esse seed estão no README da infraestrutura.
