@@ -6,6 +6,7 @@ coverage
 .gitignore
 
 .env
+.env.test
 .env.*
 
 Dockerfile.dev
