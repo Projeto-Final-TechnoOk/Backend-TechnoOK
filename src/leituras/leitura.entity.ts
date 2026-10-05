@@ -5,6 +5,8 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import type { Relation } from 'typeorm';
+
 import { Medidor } from '../medidores/medidor.entity';
 
 @Entity('leituras')
@@ -27,5 +29,5 @@ export class Leitura {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'medidor_id' })
-  medidor!: Medidor;
+  medidor!: Relation<Medidor>;
 }

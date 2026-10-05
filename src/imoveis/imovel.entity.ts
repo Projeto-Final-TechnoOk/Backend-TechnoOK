@@ -1,5 +1,9 @@
-import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+
+import type { Relation } from 'typeorm';
+
 import { Medidor } from '../medidores/medidor.entity';
+
 @Entity('imoveis')
 export class Imovel {
   @PrimaryGeneratedColumn('uuid')
@@ -12,5 +16,5 @@ export class Imovel {
   endereco!: string;
 
   @OneToMany(() => Medidor, (medidor) => medidor.imovel)
-  medidores!: Medidor[];
+  medidores!: Relation<Medidor[]>;
 }

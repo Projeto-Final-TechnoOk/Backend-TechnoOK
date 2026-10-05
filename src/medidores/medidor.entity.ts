@@ -6,11 +6,12 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Imovel } from '../imoveis/imovel.entity';
-import { TipoMedidor } from './enums/tipo-medidor.enum';
-import { Leitura } from '../leituras/leitura.entity';
+import type { Relation } from 'typeorm';
 
-// Modelo utilizado na criação da tabela de medidores e modelo básico de medidor na aplicação.
+import { Imovel } from '../imoveis/imovel.entity';
+import { Leitura } from '../leituras/leitura.entity';
+import { TipoMedidor } from './enums/tipo-medidor.enum';
+
 @Entity('medidores')
 export class Medidor {
   @PrimaryGeneratedColumn('uuid')
@@ -22,15 +23,13 @@ export class Medidor {
   @Column({ type: 'enum', enum: TipoMedidor })
   tipo!: TipoMedidor;
 
-  // Lado N da relação N-1
   @ManyToOne(() => Imovel, (imovel) => imovel.medidores, {
     nullable: false,
-    onDelete: 'RESTRICT', // Não permite a deleção de um imóvel caso um imóvel tenha algum medidor associado
+    onDelete: 'RESTRICT',
   })
   @JoinColumn({ name: 'imovel_id' })
-  imovel!: Imovel;
+  imovel!: Relation<Imovel>;
 
-  // Lado 1 da relação N-1
   @OneToMany(() => Leitura, (leitura) => leitura.medidor)
-  leituras!: Leitura[];
+  leituras!: Relation<Leitura[]>;
 }
