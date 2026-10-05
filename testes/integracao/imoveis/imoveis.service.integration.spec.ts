@@ -352,4 +352,100 @@ describe('ImoveisService - Integração', () => {
       });
     });
   });
+
+  // =================
+  // Tabela de Imóveis
+  // =================
+
+  describe('tabela', () => {
+    describe('listarPaginado', () => {
+      it('deve retornar os imóveis paginados corretamente', async () => {
+        // ARRANGE
+        await imoveisRepository.save([
+          imoveisRepository.create({
+            nome: 'Imóvel 1',
+            endereco: 'Endereço 1',
+          }),
+          imoveisRepository.create({
+            nome: 'Imóvel 2',
+            endereco: 'Endereço 2',
+          }),
+          imoveisRepository.create({
+            nome: 'Imóvel 3',
+            endereco: 'Endereço 3',
+          }),
+          imoveisRepository.create({
+            nome: 'Imóvel 4',
+            endereco: 'Endereço 4',
+          }),
+          imoveisRepository.create({
+            nome: 'Imóvel 5',
+            endereco: 'Endereço 5',
+          }),
+        ]);
+
+        // ACT
+        const resultado = await service.listarPaginado(1, 2);
+
+        // ASSERT
+        expect(resultado.dados).toHaveLength(2);
+        expect(resultado.pagina).toBe(1);
+        expect(resultado.limite).toBe(2);
+        expect(resultado.total).toBe(5);
+        expect(resultado.totalPaginas).toBe(3);
+      });
+
+      it('deve retornar corretamente a segunda página', async () => {
+        // ARRANGE
+        await imoveisRepository.save([
+          imoveisRepository.create({
+            nome: 'Imóvel 1',
+            endereco: 'Endereço 1',
+          }),
+          imoveisRepository.create({
+            nome: 'Imóvel 2',
+            endereco: 'Endereço 2',
+          }),
+          imoveisRepository.create({
+            nome: 'Imóvel 3',
+            endereco: 'Endereço 3',
+          }),
+          imoveisRepository.create({
+            nome: 'Imóvel 4',
+            endereco: 'Endereço 4',
+          }),
+          imoveisRepository.create({
+            nome: 'Imóvel 5',
+            endereco: 'Endereço 5',
+          }),
+        ]);
+
+        // ACT
+        const resultado = await service.listarPaginado(2, 2);
+
+        // ASSERT
+        expect(resultado.dados).toHaveLength(2);
+        expect(resultado.pagina).toBe(2);
+        expect(resultado.limite).toBe(2);
+        expect(resultado.total).toBe(5);
+        expect(resultado.totalPaginas).toBe(3);
+      });
+
+      it('deve lançar BadRequestException quando a página for menor que 1', async () => {
+        await expect(service.listarPaginado(0, 10)).rejects.toThrow(
+          BadRequestException,
+        );
+      });
+
+      it('deve lançar BadRequestException quando o limite for inválido', async () => {
+        await expect(service.listarPaginado(1, 0)).rejects.toThrow(
+          BadRequestException,
+        );
+
+        await expect(service.listarPaginado(1, 101)).rejects.toThrow(
+          BadRequestException,
+        );
+      });
+    });
+  });
 });
