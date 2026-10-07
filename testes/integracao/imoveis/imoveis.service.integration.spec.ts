@@ -54,7 +54,7 @@ describe('ImoveisService - Integração', () => {
 
   describe('crud', () => {
     describe('listarTodos', () => {
-      it('deve listar todos os imóveis cadastrados', async () => {
+      it('Deve listar todos os imóveis cadastrados quando existirem imóveis cadastrados', async () => {
         // ARRANGE
         await imoveisRepository.save([
           imoveisRepository.create({
@@ -88,10 +88,21 @@ describe('ImoveisService - Integração', () => {
         expect(nomes).toContain('Imóvel 3');
         expect(nomes).toContain('Imóvel 4');
       });
+
+      it('Deve retornar uma lista vazia quando não existirem imóveis cadastrados', async () => {
+        // ARRANGE
+        // O Banco já está vazio
+
+        // ACT
+        const resultados = await service.listarTodos();
+
+        // ASSERT
+        expect(resultados).toHaveLength(0);
+      });
     });
 
     describe('buscarPorId', () => {
-      it('deve buscar no banco o imóvel correspondente ao ID informado', async () => {
+      it('Deve buscar no banco o imóvel correspondente ao ID informado', async () => {
         // ARRANGE
         const imovelCriado = imoveisRepository.create({
           nome: 'Apartamento 101',
@@ -108,7 +119,7 @@ describe('ImoveisService - Integração', () => {
         expect(resultado.endereco).toBe('Rua dos Testes, 123');
       });
 
-      it('deve retornar um NotFoundException quando o id não existir', async () => {
+      it('Deve retornar um NotFoundException quando o id não existir', async () => {
         // ARRANGE
         const idInexistente = '00000000-0000-0000-0000-000000000000';
 
@@ -120,7 +131,7 @@ describe('ImoveisService - Integração', () => {
     });
 
     describe('criar', () => {
-      it('deve criar e persistir no banco de dados um registro válido de imóvel', async () => {
+      it('Deve criar e persistir no banco de dados um registro válido de imóvel', async () => {
         // ARRANGE
         const dados = {
           nome: 'CasaAntiga',
@@ -144,7 +155,7 @@ describe('ImoveisService - Integração', () => {
         expect(imovelPersistido?.endereco).toBe('Avenida Nova Recife');
       });
 
-      it('deve lançar BadRequestException ao criar imóvel com dados inválidos', async () => {
+      it('Deve lançar BadRequestException ao criar imóvel com dados inválidos', async () => {
         // ARRANGE
         const imovelSemNome = { nome: '', endereco: 'Rua Sem Nome' };
         const imovelSemEndereco = { nome: 'Casa sem endereco', endereco: '' };
@@ -166,7 +177,7 @@ describe('ImoveisService - Integração', () => {
     });
 
     describe('atualizar', () => {
-      it('deve atualizar completamente um registro no banco de dados', async () => {
+      it('Deve atualizar completamente um registro no banco de dados', async () => {
         // ARRANGE
         const imovelAtual = imoveisRepository.create({
           nome: 'Imovel Atual',
@@ -200,7 +211,7 @@ describe('ImoveisService - Integração', () => {
         expect(imovelNoBanco?.endereco).toBe('Endereço Atualizado');
       });
 
-      it('deve atualizar parcialmente um registro no banco de dados', async () => {
+      it('Deve atualizar parcialmente um registro no banco de dados', async () => {
         // ARRANGE
         const imovelAtual = imoveisRepository.create({
           nome: 'Imovel Atual',
@@ -242,7 +253,7 @@ describe('ImoveisService - Integração', () => {
         );
       });
 
-      it('deve disparar BadRequestException quando um campo vazio ou com espaços for passado', async () => {
+      it('Deve disparar BadRequestException quando um campo vazio ou com espaços for passado', async () => {
         // ARRANGE
         const imovelAtual = imoveisRepository.create({
           nome: 'Imovel Atual',
@@ -268,7 +279,7 @@ describe('ImoveisService - Integração', () => {
         ).rejects.toThrow(BadRequestException);
       });
 
-      it('deve disparar NotFoundException quando o id do imóvel não for encontrado', async () => {
+      it('Deve disparar NotFoundException quando o id do imóvel não for encontrado', async () => {
         // ARRANGE
         const imovelComModificacoes = {
           nome: 'Imovel Atualizado',
@@ -284,7 +295,7 @@ describe('ImoveisService - Integração', () => {
     });
 
     describe('deletar', () => {
-      it('deve deletar um imóvel existente no bando de dados', async () => {
+      it('Deve deletar um imóvel existente no bando de dados', async () => {
         // ARRANGE
         const registroValido = imoveisRepository.create({
           nome: 'Nome Válido',
@@ -304,7 +315,7 @@ describe('ImoveisService - Integração', () => {
         expect(imovelDeletado).toBeNull();
       });
 
-      it('deve disparar um NotFoundException quando o id do imóvel não for encontrado', async () => {
+      it('Deve disparar um NotFoundException quando o id do imóvel não for encontrado', async () => {
         // ARRANGE
         const idInexistente = '00000000-0000-0000-0000-000000000000';
 
@@ -322,7 +333,7 @@ describe('ImoveisService - Integração', () => {
 
   describe('dashboard', () => {
     describe('contar', () => {
-      it('deve mostrar a quantidade de imóveis cadastrados no banco de dados', async () => {
+      it('Deve mostrar a quantidade de imóveis cadastrados no banco de dados', async () => {
         // ARRANGE
         await imoveisRepository.save([
           imoveisRepository.create({
@@ -359,7 +370,7 @@ describe('ImoveisService - Integração', () => {
 
   describe('tabela', () => {
     describe('listarPaginado', () => {
-      it('deve retornar os imóveis paginados corretamente', async () => {
+      it('Deve retornar os imóveis paginados corretamente', async () => {
         // ARRANGE
         await imoveisRepository.save([
           imoveisRepository.create({
@@ -395,7 +406,7 @@ describe('ImoveisService - Integração', () => {
         expect(resultado.totalPaginas).toBe(3);
       });
 
-      it('deve retornar corretamente a segunda página', async () => {
+      it('Deve retornar corretamente a segunda página', async () => {
         // ARRANGE
         await imoveisRepository.save([
           imoveisRepository.create({
@@ -431,13 +442,13 @@ describe('ImoveisService - Integração', () => {
         expect(resultado.totalPaginas).toBe(3);
       });
 
-      it('deve lançar BadRequestException quando a página for menor que 1', async () => {
+      it('Deve lançar BadRequestException quando a página for menor que 1', async () => {
         await expect(service.listarPaginado(0, 10)).rejects.toThrow(
           BadRequestException,
         );
       });
 
-      it('deve lançar BadRequestException quando o limite for inválido', async () => {
+      it('Deve lançar BadRequestException quando o limite for inválido', async () => {
         await expect(service.listarPaginado(1, 0)).rejects.toThrow(
           BadRequestException,
         );
