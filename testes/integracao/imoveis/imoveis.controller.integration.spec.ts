@@ -19,6 +19,14 @@ type ImovelResponse = {
   endereco: string;
 };
 
+type ImoveisPaginadosResponse = {
+  dados: ImovelResponse[];
+  pagina: number;
+  limite: number;
+  total: number;
+  totalPaginas: number;
+};
+
 describe('ImoveisController - Integração', () => {
   let app: INestApplication;
   let httpServer: Server;
@@ -460,6 +468,126 @@ describe('ImoveisController - Integração', () => {
 
         // ASSERT
         expect(Number(resposta.text)).toBe(5);
+      });
+    });
+  });
+
+  describe('tabela', () => {
+    describe('GET /imoveis/paginado', () => {
+      it('deve retornar 200 e os imóveis paginados corretamente', async () => {
+        // ARRANGE
+        await imoveisRepository.save([
+          imoveisRepository.create({
+            nome: 'Imóvel 1',
+            endereco: 'Endereço 1',
+          }),
+          imoveisRepository.create({
+            nome: 'Imóvel 2',
+            endereco: 'Endereço 2',
+          }),
+          imoveisRepository.create({
+            nome: 'Imóvel 3',
+            endereco: 'Endereço 3',
+          }),
+          imoveisRepository.create({
+            nome: 'Imóvel 4',
+            endereco: 'Endereço 4',
+          }),
+          imoveisRepository.create({
+            nome: 'Imóvel 5',
+            endereco: 'Endereço 5',
+          }),
+        ]);
+
+        // ACT
+        const resposta = await request(httpServer)
+          .get('/imoveis/paginado')
+          .query({
+            pagina: 1,
+            limite: 2,
+          })
+          .expect(200);
+
+        // ASSERT
+        const body = resposta.body as ImoveisPaginadosResponse;
+
+        expect(body.dados).toHaveLength(2);
+        expect(body.pagina).toBe(1);
+        expect(body.limite).toBe(2);
+        expect(body.total).toBe(5);
+        expect(body.totalPaginas).toBe(3);
+      });
+
+      it('deve retornar 200 e corretamente a segunda página', async () => {
+        // ARRANGE
+        await imoveisRepository.save([
+          imoveisRepository.create({
+            nome: 'Imóvel 1',
+            endereco: 'Endereço 1',
+          }),
+          imoveisRepository.create({
+            nome: 'Imóvel 2',
+            endereco: 'Endereço 2',
+          }),
+          imoveisRepository.create({
+            nome: 'Imóvel 3',
+            endereco: 'Endereço 3',
+          }),
+          imoveisRepository.create({
+            nome: 'Imóvel 4',
+            endereco: 'Endereço 4',
+          }),
+          imoveisRepository.create({
+            nome: 'Imóvel 5',
+            endereco: 'Endereço 5',
+          }),
+        ]);
+
+        // ACT
+        const resposta = await request(httpServer)
+          .get('/imoveis/paginado')
+          .query({
+            pagina: 2,
+            limite: 2,
+          })
+          .expect(200);
+
+        // ASSERT
+        const body = resposta.body as ImoveisPaginadosResponse;
+
+        expect(body.dados).toHaveLength(2);
+        expect(body.pagina).toBe(2);
+        expect(body.limite).toBe(2);
+        expect(body.total).toBe(5);
+        expect(body.totalPaginas).toBe(3);
+      });
+
+      it('deve retornar 400 quando a página for menor que 1', async () => {
+        await request(httpServer)
+          .get('/imoveis/paginado')
+          .query({
+            pagina: 0,
+            limite: 10,
+          })
+          .expect(400);
+      });
+
+      it('deve retornar 400 quando o limite for inválido', async () => {
+        await request(httpServer)
+          .get('/imoveis/paginado')
+          .query({
+            pagina: 1,
+            limite: 0,
+          })
+          .expect(400);
+
+        await request(httpServer)
+          .get('/imoveis/paginado')
+          .query({
+            pagina: 1,
+            limite: 101,
+          })
+          .expect(400);
       });
     });
   });
